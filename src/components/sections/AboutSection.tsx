@@ -284,18 +284,18 @@ export default function AboutSection() {
                   >
                     <motion.div
                       whileHover={{ scale: 1.02 }}
-                      className={`rounded-2xl border border-white/20 bg-white/80 p-6 shadow-lg backdrop-blur-md transition-all hover:shadow-xl lg:p-8 dark:border-white/10 dark:bg-white/5 ${
+                      className={`rounded-2xl border border-white/20 bg-white/80 p-4 shadow-lg backdrop-blur-md transition-all hover:shadow-xl sm:p-6 lg:p-8 dark:border-white/10 dark:bg-white/5 ${
                         isActive
                           ? 'bg-blue-50/50 ring-2 ring-blue-500/50 dark:bg-blue-950/20'
                           : ''
                       }`}
                     >
-                      <div className="mb-3 flex items-center gap-3">
-                        <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                        <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
                           {event.year}
                         </span>
                         <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${
+                          className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
                             event.type === 'education'
                               ? 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400'
                               : event.type === 'experience'
@@ -309,11 +309,11 @@ export default function AboutSection() {
                         </span>
                       </div>
 
-                      <h3 className="text-foreground mb-2 text-xl font-bold lg:text-2xl">
+                      <h3 className="text-foreground mb-2 text-lg font-bold sm:text-xl lg:text-2xl">
                         {event.title}
                       </h3>
 
-                      <div className="text-muted-foreground mb-4 flex items-center gap-4 text-sm">
+                      <div className="text-muted-foreground mb-4 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:gap-4">
                         <span className="font-medium">
                           {event.organization}
                         </span>
@@ -323,7 +323,7 @@ export default function AboutSection() {
                         </div>
                       </div>
 
-                      <p className="text-muted-foreground leading-relaxed">
+                      <p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
                         {event.description}
                       </p>
                     </motion.div>

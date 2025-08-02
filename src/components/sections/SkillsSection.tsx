@@ -79,7 +79,7 @@ export default function SkillsSection() {
         const angleStep = (2 * Math.PI) / Object.keys(skillsByCategory).length;
         const categoryAngle = categoryIndex * angleStep;
         const categoryRadius =
-          Math.min(containerRect.width, containerRect.height) * 0.25;
+          Math.min(containerRect.width, containerRect.height) * 0.32;
 
         const categoryCenterX =
           centerX + Math.cos(categoryAngle) * categoryRadius;
@@ -89,14 +89,18 @@ export default function SkillsSection() {
         categorySkills.forEach((skill, skillIndex) => {
           const skillAngleStep = (2 * Math.PI) / categorySkills.length;
           const skillAngle = skillIndex * skillAngleStep;
-          const skillRadius = 60 + skill.level * 20;
+          // Adjust skill radius based on screen size
+          const baseRadius = containerRect.width < 768 ? 80 : 120;
+          const levelMultiplier = containerRect.width < 768 ? 25 : 40;
+          const skillRadius = baseRadius + skill.level * levelMultiplier;
 
           const x = categoryCenterX + Math.cos(skillAngle) * skillRadius;
           const y = categoryCenterY + Math.sin(skillAngle) * skillRadius;
 
+          const margin = containerRect.width < 768 ? 60 : 100;
           points.push({
-            x: Math.max(50, Math.min(containerRect.width - 50, x)),
-            y: Math.max(50, Math.min(containerRect.height - 50, y)),
+            x: Math.max(margin, Math.min(containerRect.width - margin, x)),
+            y: Math.max(margin, Math.min(containerRect.height - margin, y)),
             skill,
             category: category as SkillCategory,
           });
@@ -220,7 +224,7 @@ export default function SkillsSection() {
         >
           <div
             ref={constellationRef}
-            className="border-border relative h-[600px] w-full overflow-hidden rounded-3xl border bg-gradient-to-br from-slate-50 to-blue-50 shadow-2xl lg:h-[700px] dark:from-slate-950 dark:to-blue-950"
+            className="border-border relative h-[800px] w-full overflow-hidden rounded-3xl border bg-gradient-to-br from-slate-50 to-blue-50 shadow-2xl sm:h-[1000px] md:h-[1200px] lg:h-[1400px] dark:from-slate-950 dark:to-blue-950"
           >
             {/* Background Grid */}
             <div className="absolute inset-0 opacity-20">
@@ -234,12 +238,20 @@ export default function SkillsSection() {
             {/* Constellation Lines */}
             <svg className="absolute inset-0 h-full w-full">
               {filteredPoints.map((point, index) => {
+                // Adjust connection distance based on container size
+                const maxDistance = constellationRef.current
+                  ? constellationRef.current.getBoundingClientRect().width < 768
+                    ? 200
+                    : 300
+                  : 300;
+
                 const connectedPoints = filteredPoints.filter(
                   (p) =>
                     p.category === point.category &&
+                    p !== point &&
                     Math.sqrt(
                       Math.pow(p.x - point.x, 2) + Math.pow(p.y - point.y, 2)
-                    ) < 150
+                    ) < maxDistance
                 );
 
                 return connectedPoints.map((connectedPoint, connectedIndex) => (
@@ -253,7 +265,7 @@ export default function SkillsSection() {
                     x2={connectedPoint.x}
                     y2={connectedPoint.y}
                     stroke="currentColor"
-                    strokeWidth="1"
+                    strokeWidth="1.5"
                     className="text-blue-400 dark:text-blue-600"
                   />
                 ));
@@ -276,18 +288,25 @@ export default function SkillsSection() {
                 >
                   {/* Skill Orb */}
                   <motion.div
-                    whileHover={{ scale: 1.3 }}
-                    className={`h-6 w-6 rounded-full bg-gradient-to-br ${categoryColors[point.category]} relative border-2 border-white shadow-lg dark:border-slate-900`}
+                    whileHover={{ scale: 1.4 }}
+                    className={`h-12 w-12 rounded-full bg-gradient-to-br sm:h-14 sm:w-14 md:h-16 md:w-16 ${categoryColors[point.category]} relative flex items-center justify-center border-2 border-white shadow-xl sm:border-3 dark:border-slate-900`}
                   >
                     {/* Pulsing Effect */}
                     <div
-                      className={`absolute inset-0 rounded-full bg-gradient-to-br ${categoryColors[point.category]} animate-ping opacity-60`}
+                      className={`absolute inset-0 rounded-full bg-gradient-to-br ${categoryColors[point.category]} animate-ping opacity-20`}
                     />
 
                     {/* Level Indicator */}
-                    <div className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full border border-yellow-600 bg-yellow-400 text-xs font-bold text-yellow-900">
+                    <div className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-yellow-600 bg-yellow-400 text-xs font-bold text-yellow-900 shadow-lg sm:-top-2 sm:-right-2 sm:h-6 sm:w-6 sm:text-sm md:h-7 md:w-7">
                       {point.skill.level}
                     </div>
+
+                    {/* Skill Name Inside Orb */}
+                    <span className="relative z-10 truncate px-1 text-center text-xs leading-tight font-bold text-white sm:px-2 sm:text-sm">
+                      {point.skill.name.length > 8
+                        ? point.skill.name.substring(0, 6) + '...'
+                        : point.skill.name}
+                    </span>
                   </motion.div>
 
                   {/* Skill Tooltip */}
@@ -295,30 +314,33 @@ export default function SkillsSection() {
                     {hoveredSkill === point.skill.name && (
                       <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                        animate={{ opacity: 1, y: -50, scale: 1 }}
+                        animate={{ opacity: 1, y: -70, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                        className="border-border absolute bottom-full left-1/2 z-10 mb-2 min-w-max -translate-x-1/2 transform rounded-lg border bg-white px-4 py-2 shadow-xl dark:bg-slate-800"
+                        className="border-border absolute bottom-full left-1/2 z-20 mb-2 min-w-max -translate-x-1/2 transform rounded-xl border-2 bg-white px-6 py-4 shadow-2xl dark:bg-slate-800"
                       >
-                        <div className="text-foreground text-sm font-semibold">
+                        <div className="text-foreground text-lg font-bold">
                           {point.skill.name}
                         </div>
-                        <div className="text-muted-foreground text-xs capitalize">
+                        <div className="text-muted-foreground text-sm font-medium capitalize">
                           {point.category.replace('-', ' ')}
                         </div>
-                        <div className="mt-1 flex items-center">
+                        <div className="mt-2 flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`h-3 w-3 ${
+                              className={`mr-1 h-4 w-4 ${
                                 i < point.skill.level
                                   ? 'fill-current text-yellow-400'
                                   : 'text-gray-300'
                               }`}
                             />
                           ))}
+                          <span className="ml-2 text-sm font-semibold text-yellow-600">
+                            {point.skill.level}/5
+                          </span>
                         </div>
                         {/* Tooltip Arrow */}
-                        <div className="border-border absolute top-full left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 transform border-r border-b bg-white dark:bg-slate-800" />
+                        <div className="border-border absolute top-full left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 transform border-r-2 border-b-2 bg-white dark:bg-slate-800" />
                       </motion.div>
                     )}
                   </AnimatePresence>

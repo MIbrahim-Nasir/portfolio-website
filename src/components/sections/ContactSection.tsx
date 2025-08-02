@@ -33,9 +33,35 @@ export default function ContactSection() {
   const [submitStatus, setSubmitStatus] = useState<
     'idle' | 'success' | 'error'
   >('idle');
+  const [errors, setErrors] = useState<Partial<ContactForm>>({});
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<ContactForm> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = 'Message is required';
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = 'Message must be at least 10 characters long';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -45,22 +71,59 @@ export default function ContactSection() {
       ...prev,
       [name]: value,
     }));
+
+    // Clear error when user starts typing
+    if (errors[name as keyof ContactForm]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // Simulate form submission (replace with actual API call)
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch {
+      // Using Next.js API route for server-side email sending
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setErrors({});
+      } else {
+        throw new Error(result.error || 'Failed to send message');
+      }
+    } catch (error: unknown) {
+      console.error('Error sending message:', error);
       setSubmitStatus('error');
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : 'Failed to send message. Please try again.';
+      setErrorMessage(errorMsg);
     } finally {
       setIsSubmitting(false);
-      setTimeout(() => setSubmitStatus('idle'), 5000);
+      setTimeout(() => {
+        setSubmitStatus('idle');
+        setErrorMessage('');
+      }, 5000);
     }
   };
 
@@ -225,8 +288,10 @@ export default function ContactSection() {
                   size="lg"
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transition-all hover:from-blue-700 hover:to-purple-700 hover:shadow-xl"
                   onClick={() => {
-                    // Replace with actual resume download logic
-                    console.log('Download resume');
+                    const link = document.createElement('a');
+                    link.href = '/resume.pdf';
+                    link.download = 'Ibrahim_Nasir_Resume.pdf';
+                    link.click();
                   }}
                 >
                   <Download className="mr-2 h-5 w-5" />
@@ -268,9 +333,16 @@ export default function ContactSection() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="border-border bg-background/50 dark:bg-background/50 text-foreground placeholder-muted-foreground w-full rounded-xl border px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className={`border-border bg-background/50 dark:bg-background/50 text-foreground placeholder-muted-foreground w-full rounded-xl border px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:outline-none ${
+                        errors.name
+                          ? 'border-red-500 focus:ring-red-500'
+                          : 'focus:ring-blue-500'
+                      }`}
                       placeholder="Your full name"
                     />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                    )}
                   </div>
 
                   <div>
@@ -287,9 +359,18 @@ export default function ContactSection() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="border-border bg-background/50 dark:bg-background/50 text-foreground placeholder-muted-foreground w-full rounded-xl border px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className={`border-border bg-background/50 dark:bg-background/50 text-foreground placeholder-muted-foreground w-full rounded-xl border px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:outline-none ${
+                        errors.email
+                          ? 'border-red-500 focus:ring-red-500'
+                          : 'focus:ring-blue-500'
+                      }`}
                       placeholder="your@email.com"
                     />
+                    {errors.email && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -307,9 +388,18 @@ export default function ContactSection() {
                     value={formData.subject}
                     onChange={handleInputChange}
                     required
-                    className="border-border bg-background/50 dark:bg-background/50 text-foreground placeholder-muted-foreground w-full rounded-xl border px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className={`border-border bg-background/50 dark:bg-background/50 text-foreground placeholder-muted-foreground w-full rounded-xl border px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:outline-none ${
+                      errors.subject
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'focus:ring-blue-500'
+                    }`}
                     placeholder="What's this about?"
                   />
+                  {errors.subject && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.subject}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -326,9 +416,18 @@ export default function ContactSection() {
                     onChange={handleInputChange}
                     required
                     rows={6}
-                    className="border-border bg-background/50 dark:bg-background/50 text-foreground placeholder-muted-foreground w-full resize-none rounded-xl border px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className={`border-border bg-background/50 dark:bg-background/50 text-foreground placeholder-muted-foreground w-full resize-none rounded-xl border px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:outline-none ${
+                      errors.message
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'focus:ring-blue-500'
+                    }`}
                     placeholder="Tell me about your project, ideas, or how we can collaborate..."
                   />
+                  {errors.message && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.message}
+                    </p>
+                  )}
                 </div>
 
                 <motion.div
@@ -368,7 +467,8 @@ export default function ContactSection() {
                   >
                     {submitStatus === 'success'
                       ? "Message sent successfully! I'll get back to you soon."
-                      : 'Something went wrong. Please try again or contact me directly.'}
+                      : errorMessage ||
+                        'Something went wrong. Please try again or contact me directly.'}
                   </motion.div>
                 )}
               </form>
