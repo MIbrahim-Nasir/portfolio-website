@@ -146,8 +146,8 @@ git push -u origin main
    - Go to "Settings" → "Domains"
    - Add your domain (e.g., `ibrahimnasir.dev`)
 3. **Configure DNS:**
+   - Add A record: `@` → `216.198.79.1` (New Vercel IP)
    - Add CNAME record: `www` → `cname.vercel-dns.com`
-   - Add A record: `@` → `76.76.19.19`
 4. **Wait for propagation** (up to 24 hours)
 
 ---
