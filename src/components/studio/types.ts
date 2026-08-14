@@ -9,7 +9,7 @@ export type RoomTheme = {
   fog: string;
   accent: string;
   light: string;
-  env: 'studio' | 'warehouse' | 'night' | 'sunset' | 'apartment';
+  env: 'studio' | 'warehouse' | 'night' | 'sunset' | 'apartment' | 'city';
 };
 
 export const rooms: Record<Mode, RoomTheme> = {
