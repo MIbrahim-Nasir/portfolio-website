@@ -1,0 +1,1837 @@
+/* INTERFACE: one signal through one machine.
+   Graphite drafting ground, warm ink, and a signal whose colour is the domain number
+   in the resistor colour code. Display + annotations: Anybody (width axis). Code + bytes: Red Hat Mono. */
+
+@property --bit {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #ece8de;
+}
+@property --w {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 100;
+}
+
+.root {
+  --bg: #0e0f10;
+  --bg-2: #15171a;
+  --ink: #ece8de;
+  --ink-2: #bdb9ae;
+  --ink-3: #85827a;
+  --hair: rgba(236, 232, 222, 0.12);
+  --hair-2: rgba(236, 232, 222, 0.24);
+  --lx: 70.8333%; /* desktop: centre of the 7/12 figure column, where the line runs */
+  --rail: 22px; /* mobile: the line's rail at the left edge */
+  --g: clamp(16px, 4vw, 64px);
+  --c: var(--ink);
+  --display: var(--if-display), 'Arial Narrow', sans-serif;
+  --mono: var(--if-mono), ui-monospace, monospace;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  overflow-x: clip;
+  background-color: var(--bg);
+  background-image: radial-gradient(
+    rgba(236, 232, 222, 0.05) 1px,
+    transparent 1.3px
+  );
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--display);
+  font-variation-settings: 'wdth' 96;
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: --bit 0.5s linear;
+}
+.root ::selection {
+  background: var(--ink);
+  color: var(--bg);
+}
+.root a {
+  color: inherit;
+}
+.root a:focus-visible,
+.root button:focus-visible {
+  outline: 2px solid var(--c);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* light falloff behind the signal, in the colour of where the signal is */
+.aura {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      42vmax 46vmax at var(--lx) 60%,
+      color-mix(in srgb, var(--bit) 13%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      18vmax 18vmax at var(--lx) 60%,
+      color-mix(in srgb, var(--bit) 7%, transparent),
+      transparent 70%
+    );
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 14px;
+  background: var(--ink);
+  color: var(--bg) !important;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.skip:focus {
+  top: 64px;
+}
+
+/* ───────────── top bar ───────────── */
+.bar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 var(--g);
+  background: linear-gradient(rgba(14, 15, 16, 0.97), rgba(14, 15, 16, 0.9));
+  border-bottom: 1px solid var(--hair);
+}
+.bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--bit) 50%, transparent);
+  opacity: 0.6;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  flex: none;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120;
+  font-size: 19px;
+  letter-spacing: 0.005em;
+  text-decoration: none;
+}
+.brandRes {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: #3a3833;
+}
+.brandRes i {
+  display: block;
+  width: 3px;
+  height: 12px;
+  background: var(--c);
+}
+.chain {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+.chain a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 8px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: color 0.25s;
+}
+.chain a i {
+  width: 4px;
+  height: 13px;
+  background: var(--c);
+  opacity: 0.45;
+  transition:
+    opacity 0.25s,
+    box-shadow 0.25s;
+}
+.chain a:hover,
+.chainOn {
+  color: var(--ink) !important;
+}
+.chain a:hover i,
+.chainOn i {
+  opacity: 1;
+}
+.chainOn i {
+  box-shadow: 0 0 10px var(--c);
+}
+.chainName {
+  text-transform: uppercase;
+}
+.now {
+  display: none;
+}
+.barLinks {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+.barLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.barLinks a:hover {
+  border-color: var(--hair-2);
+  color: var(--ink);
+}
+@media (max-width: 1240px) {
+  .chainName {
+    display: none;
+  }
+}
+
+/* ───────────── shared type ───────────── */
+.kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin: 0 0 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.kickerNum {
+  color: var(--c);
+}
+.conv {
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+.swatch {
+  display: inline-block;
+  width: 7px;
+  height: 18px;
+  border-radius: 1px;
+  background: var(--c);
+  vertical-align: middle;
+}
+.swatchBlack {
+  background: #050505;
+  box-shadow: inset 0 0 0 1px var(--hair-2);
+}
+.h1 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(54px, 8.6vw, 148px);
+  line-height: 0.88;
+  letter-spacing: -0.01em;
+  font-variation-settings: 'wdth' 118;
+  animation: stretchIn 1.4s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+}
+@keyframes stretchIn {
+  from {
+    font-variation-settings: 'wdth' 50;
+    opacity: 0;
+    letter-spacing: 0.04em;
+  }
+  to {
+    font-variation-settings: 'wdth' 118;
+    opacity: 1;
+  }
+}
+.h2 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(44px, 5.4vw, 86px);
+  line-height: 0.92;
+  letter-spacing: -0.005em;
+  font-variation-settings: 'wdth' var(--w);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.h2 {
+  position: relative;
+}
+.h2Ghost {
+  display: block;
+  visibility: hidden;
+  font-variation-settings: 'wdth' 118;
+}
+.h2Live {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  font-variation-settings: 'wdth' var(--w);
+}
+.h3 {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(30px, 3vw, 50px);
+  line-height: 0.98;
+  font-variation-settings: 'wdth' 88;
+  text-wrap: balance;
+}
+.lead {
+  margin: 20px 0 0;
+  max-width: 24em;
+  font-size: 20px;
+  line-height: 1.35;
+  font-variation-settings: 'wdth' 92;
+  color: var(--ink-2);
+}
+
+/* ───────────── hero ───────────── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'name name'
+    'text fig';
+}
+.heroName {
+  grid-area: name;
+  padding: calc(56px + 7vh) var(--g) 0;
+}
+.heroName .h1 span {
+  white-space: nowrap;
+}
+.role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 22px 0 0;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--ink) 40%, transparent);
+  border-radius: 99px;
+  color: var(--ink);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, #ff5340 16%, transparent),
+    transparent 80%
+  );
+}
+.pill i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3ccf7d;
+  box-shadow: 0 0 0 3px rgba(60, 207, 125, 0.2);
+}
+.roleAt {
+  color: var(--ink-3);
+}
+.heroText {
+  grid-area: text;
+  padding: 6vh var(--g) 8vh;
+}
+.thesis {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(34px, 3.6vw, 60px);
+  line-height: 1.02;
+  font-variation-settings: 'wdth' 80;
+  text-transform: uppercase;
+}
+.word {
+  display: inline-block;
+  padding: 0.08em 0;
+  text-decoration: none;
+  background: linear-gradient(var(--c), var(--c)) left bottom / 100% 0.12em
+    no-repeat;
+  transition:
+    color 0.2s,
+    font-variation-settings 0.35s;
+}
+.word:hover {
+  color: var(--c);
+  font-variation-settings: 'wdth' 110;
+}
+.heroLine {
+  margin: 24px 0 0;
+  max-width: 22em;
+  font-size: 20px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 30px;
+}
+.btn,
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+.btn {
+  background: linear-gradient(
+    90deg,
+    var(--ink),
+    color-mix(in srgb, #c98a5b 40%, var(--ink))
+  );
+  color: var(--bg) !important;
+}
+.btn:hover {
+  background: #c98a5b;
+}
+.btnGhost {
+  border: 1px solid var(--hair-2);
+  color: var(--ink) !important;
+}
+.btnGhost:hover {
+  border-color: var(--ink);
+}
+.heroFig {
+  grid-area: fig;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 2vh;
+}
+.loopSvg {
+  display: block;
+  width: min(580px, calc(100% - 48px));
+  height: auto;
+  overflow: visible;
+}
+.heroLead {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 48px;
+  width: 2px;
+}
+.wireC {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+}
+.wireC::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(var(--p, 0) * 100%);
+  background: linear-gradient(transparent, var(--c) 40px);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 60%, transparent);
+}
+.loopPath {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+}
+.loopPulse {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 14 86;
+  filter: drop-shadow(0 0 4px rgba(255, 148, 38, 0.7));
+  animation: pulse 7s linear infinite;
+}
+@keyframes pulse {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+.loopLink rect:first-child {
+  transition:
+    stroke 0.2s,
+    fill 0.2s;
+}
+.loopLink:hover rect:first-child,
+.loopLink:focus-visible rect:first-child {
+  stroke: var(--c);
+  fill: color-mix(in srgb, var(--c) 12%, var(--bg));
+}
+.loopLink:focus-visible {
+  outline: none;
+}
+.bandFill {
+  fill: var(--c);
+}
+.tLoopT {
+  font-weight: 700;
+  font-size: 22px !important;
+  font-variation-settings: 'wdth' 100 !important;
+  fill: var(--ink) !important;
+}
+.tLoopS {
+  font-family: var(--mono) !important;
+  font-variation-settings: normal !important;
+  font-size: 12px !important;
+  fill: var(--c) !important;
+}
+.triad text {
+  font-weight: 800;
+  font-size: 20px !important;
+  font-variation-settings: 'wdth' 85 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  fill: var(--c) !important;
+}
+.heroTag line {
+  stroke: #c98a5b;
+  stroke-width: 1;
+}
+.heroTag circle {
+  fill: #c98a5b;
+}
+.heroTag rect {
+  fill: color-mix(in srgb, #c98a5b 13%, var(--bg));
+  stroke: #c98a5b;
+  stroke-width: 1.2;
+}
+.heroTag .tagHole {
+  fill: var(--bg);
+}
+.sigLead {
+  stroke: var(--c);
+  stroke-width: 2;
+}
+
+/* ───────────── domains ───────────── */
+.domain {
+  position: relative;
+}
+.head {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  padding: 16vh 0 10vh;
+}
+.headText {
+  padding: 0 32px 0 var(--g);
+}
+
+/* wires: every segment of the one line. --p is filled by scroll. */
+.wire {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--lx);
+  width: 2px;
+  margin-left: -1px;
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+  pointer-events: none;
+}
+.wire::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--c);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 55%, transparent);
+  clip-path: inset(-12px -12px calc((1 - var(--p, 0)) * 100%) -12px);
+}
+/* the interface wire fades from one domain's colour to the next */
+.wireGrad {
+  background: linear-gradient(
+    color-mix(in srgb, var(--c1) 22%, transparent),
+    color-mix(in srgb, var(--c2) 22%, transparent)
+  );
+}
+.wireGrad::before {
+  background: linear-gradient(var(--c1) 30%, var(--c2) 70%);
+  box-shadow: none;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--c1) 70%, transparent));
+}
+.railOnly {
+  display: none;
+}
+
+/* group: a pinned stage, title card on the left, figure on the line */
+.group {
+  position: relative;
+  min-height: 235vh;
+}
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+}
+.figTitle {
+  position: relative;
+  align-self: center;
+  padding: 0 32px 0 var(--g);
+}
+.figN {
+  margin: 0 0 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c);
+}
+.fig {
+  grid-column: 2;
+  position: relative;
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.fig > [data-lead]:not(.elbow) {
+  position: relative;
+  flex: 1 1 0;
+  width: 2px;
+  min-height: 24px;
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+}
+.fig > [data-lead='top']:not(.elbow) {
+  min-height: 64px;
+}
+.fig > [data-lead]:not(.elbow)::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(var(--p, 0) * 100%);
+  background: var(--c);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 55%, transparent);
+}
+.svgBox {
+  flex: none;
+  width: min(calc(100% - 48px), calc((100vh - 104px) * var(--ar, 0.75)));
+  aspect-ratio: var(--ar, 0.75);
+}
+.elbow {
+  display: none;
+}
+
+/* interfaces: the boundary between two domains */
+.band {
+  position: relative;
+  min-height: 62vh;
+}
+.glyph {
+  position: absolute;
+  left: var(--lx);
+  top: 50%;
+  width: 92px;
+  transform: translate(-50%, -50%)
+    scale(calc(0.92 + min(var(--b, 0), 1 - var(--b, 0)) * 0.4));
+  --cm: color-mix(in oklab, var(--c1), var(--c2) calc(var(--b, 0) * 100%));
+  filter: drop-shadow(
+    0 0 calc(4px + min(var(--b, 0), 1 - var(--b, 0)) * 40px)
+      color-mix(in srgb, var(--cm) 55%, transparent)
+  );
+}
+.glyphSvg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.glyphBox {
+  fill: var(--bg);
+  stroke: var(--cm);
+  stroke-width: 1.4;
+}
+.ring,
+.ring2 {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1.5px solid var(--cm);
+  pointer-events: none;
+  opacity: max(0, 1 - max(var(--b, 0) - 0.5, 0.5 - var(--b, 0)) * 5);
+  transform: scale(calc(1 + max(0, var(--b, 0) - 0.3) * 1.8));
+}
+.ring2 {
+  border-radius: 50%;
+  transform: scale(calc(0.6 + max(0, var(--b, 0) - 0.4) * 3.2));
+  opacity: calc(
+    max(0, 1 - max(var(--b, 0) - 0.6, 0.6 - var(--b, 0)) * 4) * 0.6
+  );
+}
+.bandText {
+  position: absolute;
+  top: 50%;
+  right: calc(100% - var(--lx) + 76px);
+  transform: translateY(-50%);
+  max-width: 30vw;
+  text-align: right;
+}
+.bandKicker {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.bandKicker .swatch {
+  height: 14px;
+  width: 5px;
+}
+.bandKicker .swatch:nth-child(2) {
+  margin-right: 6px;
+}
+.bandTitle {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(30px, 3vw, 48px);
+  line-height: 1;
+  font-variation-settings: 'wdth' calc(70 + var(--b, 0) * 40);
+  background: linear-gradient(90deg, var(--c1), var(--c2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.bandUnit {
+  margin: 8px 0 0;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.say {
+  margin: 16px 0 0;
+  font-size: 17px;
+  font-style: italic;
+  font-variation-settings: 'wdth' 90;
+  color: var(--ink);
+  opacity: clamp(0, (var(--b, 0) - 0.3) * 6, 1);
+  transform: translateY(calc((1 - clamp(0, (var(--b, 0) - 0.3) * 6, 1)) * 8px));
+}
+.sayWho {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-family: var(--mono);
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+  color: var(--bg);
+  background: var(--c2);
+}
+
+/* glyph strokes */
+.gl,
+.g1,
+.g2,
+.g2w,
+.glFaint {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gl {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.glFaint {
+  stroke: var(--ink-3);
+  stroke-width: 1.2;
+}
+.g1 {
+  stroke: var(--c1);
+}
+.g2 {
+  stroke: var(--c2);
+}
+.g2w {
+  stroke: var(--c2);
+  stroke-width: 4;
+}
+.glFill {
+  fill: var(--ink);
+}
+.g1Fill {
+  fill: var(--c1);
+}
+.g2Fill {
+  fill: var(--c2);
+}
+.gt1 {
+  fill: var(--c1);
+}
+.gt2 {
+  fill: var(--c2);
+}
+.gtBig {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 500;
+}
+.gtWord {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--ink);
+  opacity: clamp(0, (var(--b, 0) - 0.35) * 5, 1);
+}
+.gtS {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  fill: var(--ink-2);
+}
+/* each conversion, driven by --b */
+.gOut {
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(min(1, var(--b, 0) * 2.2) * -1);
+}
+.gIn {
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - clamp(0, (var(--b, 0) - 0.2) * 2, 1));
+}
+.braceL {
+  transform: translateX(calc((1 - clamp(0, var(--b, 0) * 1.6, 1)) * -9px));
+}
+.braceR {
+  transform: translateX(calc((1 - clamp(0, var(--b, 0) * 1.6, 1)) * 9px));
+}
+.gStream {
+  stroke-dasharray: 3 6;
+  animation: stream 0.6s linear infinite;
+  opacity: clamp(0, min(var(--b, 0), 1 - var(--b, 0)) * 6, 1);
+}
+@keyframes stream {
+  to {
+    stroke-dashoffset: -9;
+  }
+}
+.rotor {
+  transform-origin: 26px 32px;
+  transform: rotate(calc(var(--b, 0) * 900deg));
+}
+.spin {
+  transform-origin: 32px 32px;
+  transform: rotate(calc(var(--b, 0) * 360deg));
+}
+.sumPulse {
+  transform-origin: 32px 32px;
+  transform: scale(calc(1 + min(var(--b, 0), 1 - var(--b, 0)) * 0.5));
+}
+
+/* ───────────── Bit, the buddy ───────────── */
+.bit {
+  position: fixed;
+  z-index: 40;
+  left: var(--lx);
+  top: 60%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.4);
+  transition:
+    opacity 0.18s,
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.bitOn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+.bitTail {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 4px;
+  height: 64px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: linear-gradient(transparent, var(--bit));
+  opacity: 0.85;
+  filter: blur(0.5px);
+}
+.bitSvg {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 44px;
+  overflow: visible;
+  animation: hop 0.6s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+@keyframes hop {
+  0% {
+    transform: scale(1.7, 0.6);
+  }
+  40% {
+    transform: scale(0.8, 1.25) translateY(-4px);
+  }
+  100% {
+    transform: none;
+  }
+}
+.bitHalo {
+  fill: var(--bit);
+  opacity: 0.22;
+  animation: breathe 2.6s ease-in-out infinite;
+}
+@keyframes breathe {
+  50% {
+    opacity: 0.38;
+  }
+}
+.bitCore {
+  fill: var(--bit);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 6px var(--bit));
+}
+.bitEyes {
+  transition: transform 0.15s;
+}
+.bitEyes rect {
+  fill: var(--bg);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 5s infinite;
+}
+@keyframes blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.12);
+  }
+}
+.bitForm {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--bit) 60%, transparent);
+  border-radius: 99px;
+  background: var(--bg);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: var(--bit);
+}
+.bitSay {
+  position: absolute;
+  left: 40px;
+  bottom: 34px;
+  padding: 8px 12px;
+  border: 1px solid var(--hair-2);
+  border-radius: 10px 10px 10px 2px;
+  background: var(--bg-2);
+  font-size: 15px;
+  font-style: italic;
+  white-space: nowrap;
+  color: var(--ink);
+  animation: say 0.3s ease-out both;
+}
+@keyframes say {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ───────────── debug mode (the easter egg) ───────────── */
+.dbgPanel {
+  position: fixed;
+  z-index: 60;
+  left: 16px;
+  bottom: 16px;
+  width: min(440px, calc(100vw - 32px));
+  border: 1px solid var(--c);
+  border-radius: 8px;
+  background: rgba(10, 11, 12, 0.96);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--c) 12%, transparent),
+    0 18px 50px rgba(0, 0, 0, 0.5);
+  font-family: var(--mono);
+  color: var(--ink);
+  animation: say 0.25s ease-out both;
+}
+.dbgHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 4px 2px 14px;
+  border-bottom: 1px solid var(--hair);
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.dbgHead b {
+  color: var(--c);
+  font-weight: 500;
+}
+.dbgHead button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 22px;
+  cursor: pointer;
+}
+.dbgSrc,
+.dbgNote {
+  margin: 0;
+  padding: 10px 14px 0;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.dbgNote {
+  padding: 0 14px 12px;
+  color: var(--c);
+}
+.dbgDump {
+  margin: 0;
+  padding: 10px 14px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.dbg .routeBase {
+  stroke-opacity: 0.9;
+  stroke-dasharray: none;
+  stroke-width: 1;
+}
+.dbg .svgBox {
+  outline: 1px dashed color-mix(in srgb, var(--c) 50%, transparent);
+  outline-offset: 4px;
+}
+.dbg .bitEyes rect,
+.dbg .eyes ellipse {
+  animation: none;
+  rx: 0.3;
+}
+.dbg .tag {
+  opacity: 1 !important;
+}
+
+/* footer */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 24px;
+  padding: 28px var(--g) 36px;
+  border-top: 1px solid var(--hair);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.foot .swatch {
+  height: 12px;
+  width: 5px;
+  margin-right: 6px;
+}
+.footLinks {
+  display: flex;
+  gap: 4px;
+}
+.footLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 10px;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--hair-2);
+  text-underline-offset: 0.25em;
+}
+
+/* ───────────── SVG drawing conventions ───────────── */
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.svg text,
+.loopSvg text {
+  font-family: var(--display);
+  font-variation-settings: 'wdth' 82;
+  font-size: 13.5px;
+  fill: var(--ink-2);
+}
+.ln {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.thin {
+  stroke-width: 0.9;
+}
+.thick {
+  stroke-width: 2.4;
+}
+.faintLn {
+  stroke: var(--ink-3);
+}
+.dash {
+  stroke-dasharray: 5 4;
+}
+.ctr {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 0.9;
+  stroke-dasharray: 18 4 3 4; /* ISO 128 long-dash dot: centre lines */
+}
+.ext {
+  stroke: var(--ink-3);
+  stroke-width: 0.8;
+}
+.head {
+  fill: var(--ink-2);
+}
+.box {
+  fill: var(--bg);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+.faintBox {
+  fill: rgba(236, 232, 222, 0.03);
+  stroke: var(--ink-3);
+}
+.dashBox {
+  stroke-dasharray: 3 3;
+}
+.dbBox {
+  fill: color-mix(in srgb, var(--c) 10%, var(--bg));
+}
+.junction {
+  fill: var(--ink);
+}
+.solid {
+  fill: var(--ink);
+}
+.solidSig {
+  fill: var(--c);
+}
+.inkFill {
+  color: var(--ink);
+}
+.hatchLine {
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+.section {
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+.glass {
+  fill: color-mix(in srgb, var(--c) 9%, transparent);
+  stroke: var(--ink-3);
+  stroke-width: 0.8;
+}
+.rayBase {
+  stroke: var(--ink-3);
+  stroke-width: 0.9;
+}
+.ray,
+.trace {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sigStroke {
+  stroke: var(--c) !important;
+}
+.sigFill {
+  fill: var(--c) !important;
+}
+.sigG .ln {
+  stroke: var(--c);
+}
+.sigG .head {
+  fill: var(--c);
+}
+.dashG .ln {
+  stroke-dasharray: 5 4;
+}
+.faintG .ln {
+  stroke: var(--ink-3);
+}
+.faintG .head {
+  fill: var(--ink-3);
+}
+.cell {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 0.8;
+}
+.px {
+  fill: var(--ink);
+}
+.grid {
+  stroke: var(--hair);
+  stroke-width: 0.6;
+}
+.labelBg {
+  fill: var(--bg);
+}
+.hl {
+  fill: color-mix(in srgb, var(--c) 16%, transparent);
+}
+.act {
+  fill: var(--bg-2);
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+.pick rect {
+  stroke: var(--c);
+  stroke-width: 2;
+  fill: color-mix(in srgb, var(--c) 14%, var(--bg));
+}
+.pick text {
+  fill: var(--ink) !important;
+}
+.barSig {
+  fill: color-mix(in srgb, var(--c) 70%, transparent);
+}
+.barSigHatch {
+  fill: color-mix(in srgb, var(--c) 22%, transparent);
+  stroke: var(--c);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.linkOuter,
+.linkOuterS {
+  stroke: var(--ink);
+  stroke-linecap: round;
+}
+.linkOuter {
+  stroke-width: 22;
+}
+.linkInner {
+  stroke: var(--bg-2);
+  stroke-width: 19;
+  stroke-linecap: round;
+}
+.linkOuterS {
+  stroke-width: 14;
+}
+.linkInnerS {
+  stroke: var(--bg-2);
+  stroke-width: 11;
+  stroke-linecap: round;
+}
+.beltA,
+.beltB {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.beltA {
+  stroke: var(--c);
+}
+.beltB {
+  stroke: color-mix(in srgb, var(--c) 55%, var(--ink));
+  stroke-dasharray: 7 3;
+}
+
+/* route + signal (the figure's copy of Bit) */
+.routeBase {
+  fill: none;
+  stroke: var(--c);
+  stroke-opacity: 0.35;
+  stroke-width: 1.6;
+  stroke-dasharray: 1.5 5;
+  stroke-linecap: round;
+}
+.routeLit {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c) 80%, transparent));
+}
+.dot {
+  pointer-events: none;
+}
+.dotHalo {
+  fill: var(--c);
+  opacity: 0.24;
+}
+.dotCore {
+  fill: var(--c);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+.eyes ellipse {
+  fill: var(--bg);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 4.4s infinite;
+}
+
+/* SVG text styles */
+.tBig {
+  font-weight: 700;
+  font-size: 24px !important;
+  font-variation-settings: 'wdth' 100 !important;
+  fill: var(--ink) !important;
+}
+.tTitle {
+  font-weight: 800;
+  font-size: 23px !important;
+  font-variation-settings: 'wdth' 92 !important;
+  fill: var(--ink) !important;
+}
+.tStation {
+  font-weight: 800;
+  font-size: 30px !important;
+  font-variation-settings: 'wdth' 88 !important;
+  text-transform: uppercase;
+  fill: var(--ink) !important;
+}
+.tNode {
+  font-weight: 500;
+  font-size: 16px !important;
+  fill: var(--ink) !important;
+}
+.tNodeS {
+  font-weight: 500;
+  font-size: 15px !important;
+  fill: var(--ink) !important;
+}
+.tSub {
+  font-size: 13px !important;
+  fill: var(--ink-3) !important;
+}
+.tLab {
+  font-size: 14.5px !important;
+  fill: var(--ink-2) !important;
+}
+.tSig {
+  fill: var(--c) !important;
+}
+.tEq {
+  font-size: 17px !important;
+  font-variation-settings: 'wdth' 90 !important;
+  fill: var(--ink) !important;
+}
+.tEqS {
+  font-size: 14px !important;
+  fill: var(--ink-2) !important;
+}
+.tCode,
+.tCodeS,
+.tLn {
+  font-family: var(--mono) !important;
+  font-variation-settings: normal !important;
+}
+.tCode {
+  font-size: 13.5px !important;
+  fill: var(--ink) !important;
+  white-space: pre;
+}
+.tCodeS {
+  font-size: 12.5px !important;
+  fill: var(--c) !important;
+}
+.tLn {
+  font-size: 12px !important;
+  fill: var(--ink-3) !important;
+}
+.cStr {
+  fill: var(--c);
+}
+.cKey {
+  fill: #e9a3ff;
+}
+.cFn {
+  fill: #9fd5ff;
+}
+
+/* annotations: cable tags, readouts, BOM, stamps */
+.tagBody {
+  fill: color-mix(in srgb, var(--c) 13%, var(--bg));
+  stroke: var(--c);
+  stroke-width: 1.2;
+}
+.tagQuiet .tagBody {
+  fill: var(--bg);
+  stroke: var(--hair-2);
+}
+.tagHole {
+  fill: var(--bg);
+  stroke: var(--c);
+  stroke-width: 1;
+}
+.tagLead line {
+  stroke: var(--c);
+  stroke-width: 1;
+}
+.tagLead circle {
+  fill: var(--c);
+}
+.tagMain {
+  font-weight: 700;
+  font-size: 15.5px !important;
+  font-variation-settings: 'wdth' 84 !important;
+  fill: var(--ink) !important;
+}
+.tagSub {
+  font-size: 13.5px !important;
+  font-variation-settings: 'wdth' 80 !important;
+  fill: color-mix(in srgb, var(--c) 55%, var(--ink)) !important;
+}
+.tagQuiet .tagSub {
+  fill: var(--ink-2) !important;
+}
+.metricV {
+  font-weight: 800;
+  font-variation-settings: 'wdth' 110 !important;
+  fill: var(--c) !important;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 45%, transparent));
+}
+.metricL {
+  font-size: 13.5px !important;
+  fill: var(--ink-2) !important;
+}
+.bomBox {
+  fill: var(--bg);
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+.bomRule {
+  stroke: var(--ink-3);
+  stroke-width: 0.8;
+}
+.bomTitle {
+  font-family: var(--mono) !important;
+  font-variation-settings: normal !important;
+  font-size: 11px !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  fill: var(--c) !important;
+}
+.bomRow {
+  font-size: 14px !important;
+  fill: var(--ink) !important;
+}
+.stamp rect {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 1.6;
+}
+.stamp rect + rect {
+  stroke-width: 0.8;
+}
+.stamp text {
+  font-weight: 800;
+  font-size: 13.5px !important;
+  font-variation-settings: 'wdth' 100 !important;
+  letter-spacing: 0.08em;
+  fill: var(--c) !important;
+}
+.stamp text + text {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.svgLink {
+  cursor: pointer;
+}
+.hit {
+  fill: transparent;
+  stroke: none;
+  rx: 6;
+}
+.svgLink:hover .hit,
+.svgLink:focus-visible .hit {
+  fill: color-mix(in srgb, var(--c, var(--ink)) 8%, transparent);
+  stroke: var(--hair-2);
+}
+.svgLink:focus-visible {
+  outline: none;
+}
+.pinPad {
+  fill: var(--c);
+}
+.pinNum {
+  font-family: var(--mono) !important;
+  font-variation-settings: normal !important;
+  font-size: 12px !important;
+  font-weight: 500;
+  fill: var(--bg) !important;
+}
+.pinName {
+  font-family: var(--mono) !important;
+  font-variation-settings: normal !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.1em;
+  fill: var(--c) !important;
+}
+.pinVal {
+  font-weight: 700;
+  font-size: 19px !important;
+  font-variation-settings: 'wdth' 80 !important;
+  fill: var(--ink) !important;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--c) 60%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+.pinValQuiet {
+  font-weight: 700;
+  font-size: 19px !important;
+  font-variation-settings: 'wdth' 80 !important;
+  fill: var(--ink-2) !important;
+}
+
+/* ───────────── mobile: the machine runs as one column ───────────── */
+@media (max-width: 899px) {
+  .root {
+    --lx: var(--rail);
+    font-size: 16px;
+  }
+  .aura {
+    background: radial-gradient(
+      60vmax 50vmax at 0% 60%,
+      color-mix(in srgb, var(--bit) 12%, transparent),
+      transparent 70%
+    );
+  }
+  .bar {
+    height: 52px;
+    gap: 8px;
+    padding: 0 8px 0 14px;
+  }
+  .brand {
+    font-size: 18px;
+  }
+  .brandRes {
+    display: none;
+  }
+  .chain {
+    display: none;
+  }
+  .now {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .now i {
+    width: 5px;
+    height: 14px;
+    background: var(--c);
+    box-shadow: 0 0 8px var(--c);
+  }
+  .barLinks {
+    gap: 0;
+  }
+  .barLinks a {
+    padding: 0 8px;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+  }
+
+  .hero {
+    display: block;
+    min-height: 0;
+  }
+  .heroName {
+    padding: 92px 16px 0;
+  }
+  .heroName .h1 {
+    font-size: clamp(44px, 13.4vw, 80px);
+  }
+  .h1 {
+    font-variation-settings: 'wdth' 74;
+  }
+  @keyframes stretchIn {
+    from {
+      font-variation-settings: 'wdth' 50;
+      opacity: 0;
+    }
+    to {
+      font-variation-settings: 'wdth' 74;
+      opacity: 1;
+    }
+  }
+  .heroName .h1 span {
+    display: block;
+  }
+  .role {
+    font-size: 12px;
+    gap: 8px 10px;
+  }
+  .heroText {
+    padding: 30px 16px 8px;
+  }
+  .thesis {
+    font-size: clamp(34px, 11vw, 48px);
+  }
+  .heroLine {
+    font-size: 18px;
+  }
+  .heroFig {
+    padding: 28px 0 34px;
+  }
+  .loopSvg {
+    width: calc(100% - 16px);
+  }
+  .heroLead {
+    display: none;
+  }
+
+  .head {
+    display: block;
+    padding: 72px 16px 34px 46px;
+  }
+  .headText {
+    padding: 0;
+  }
+  .h2 {
+    font-size: clamp(40px, 12vw, 60px);
+  }
+  .h2Ghost {
+    font-variation-settings: 'wdth' 108;
+  }
+  .lead {
+    font-size: 18px;
+  }
+  .railOnly {
+    display: block;
+  }
+
+  .group {
+    min-height: 0;
+  }
+  .stage {
+    position: relative;
+    height: auto;
+    display: block;
+  }
+  .figTitle {
+    padding: 34px 16px 6px 46px;
+  }
+  .figTitle .wire {
+    left: var(--rail);
+  }
+  .h3 {
+    font-size: clamp(28px, 8.4vw, 40px);
+  }
+  .fig {
+    position: relative;
+    height: auto;
+    display: block;
+    padding: 30px 0 40px;
+  }
+  .fig > [data-lead]:not(.elbow) {
+    display: none;
+  }
+  .svgBox {
+    width: 100%;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+  .elbow {
+    display: block;
+    position: absolute;
+    left: var(--rail);
+    width: calc(50% - var(--rail));
+    height: 14px;
+    margin-left: -1px;
+    border: 0 solid var(--c);
+    opacity: calc(0.35 + var(--p, 0) * 0.65);
+    pointer-events: none;
+  }
+  .elbow::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    width: 2px;
+    height: 18px;
+    background: var(--c);
+  }
+  .elbowIn {
+    top: 0;
+    border-left-width: 2px;
+    border-bottom-width: 2px;
+    border-bottom-left-radius: 10px;
+  }
+  .elbowIn::after {
+    top: 12px;
+  }
+  .elbowOut {
+    bottom: 0;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-top-left-radius: 10px;
+  }
+  .elbowOut::after {
+    bottom: 12px;
+    height: 30px;
+  }
+  .elbowStatic {
+    opacity: 0.8;
+  }
+
+  .band {
+    min-height: 0;
+    padding: 70px 16px 70px 60px;
+  }
+  .glyph {
+    width: 44px;
+  }
+  .ring,
+  .ring2 {
+    border-radius: 8px;
+  }
+  .ring2 {
+    border-radius: 50%;
+  }
+  .bandText {
+    position: static;
+    transform: none;
+    max-width: none;
+    text-align: left;
+  }
+  .bandKicker {
+    justify-content: flex-start;
+  }
+  .bandTitle {
+    font-size: clamp(30px, 9vw, 40px);
+    font-variation-settings: 'wdth' 84;
+  }
+
+  .bit {
+    left: var(--rail);
+  }
+  .bitForm,
+  .bitSay {
+    display: none;
+  }
+  .dbgPanel {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+  }
+  .dbgDump {
+    font-size: 12.5px;
+  }
+  .foot {
+    padding-left: 46px;
+  }
+  .footLinks {
+    flex-wrap: wrap;
+    margin-left: -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loopPulse {
+    animation: none;
+    opacity: 0;
+  }
+  .h1 {
+    animation: none;
+  }
+  .gStream,
+  .bitHalo,
+  .bitSvg,
+  .bitEyes rect,
+  .eyes ellipse,
+  .bitSay,
+  .dbgPanel {
+    animation: none !important;
+  }
+  .root,
+  .root * {
+    transition: none !important;
+  }
+}
+
+/* named hook for the desktop figure leads (styled via [data-lead] above) */
+.figLead {
+  pointer-events: none;
+}
